@@ -31,6 +31,8 @@ router = APIRouter()
 # 第二次之后登录
 # 1. 用户拿着token去校验，首先需要对token进行解密，机密之后暴露用户信息
 
+
+# 登录流程
 @router.post("/login",response_model=crud.TokenDesc)
 async def login_for_access_token(db: Session=Depends(get_db),form_data: OAuth2PasswordRequestForm=Depends()):
     user = crud.verify_passwd(db,form_data.password,form_data.username)
@@ -47,7 +49,7 @@ async def login_for_access_token(db: Session=Depends(get_db),form_data: OAuth2Pa
     return {"access_token": access_token, "token_type": "bearer"}
 
 
-
+# 创建用户
 @router.post("/", response_model=crud.User)
 def create_user(user: crud.UserCreate, db: Session = Depends(get_db)):
     db_user = crud.get_user_by_email(db, email=user.email)
@@ -55,6 +57,7 @@ def create_user(user: crud.UserCreate, db: Session = Depends(get_db)):
         raise HTTPException(status_code=400, detail="Email already registered")
     return crud.create_user(db=db, user=user)
 
+# 获取当前用户信息
 @router.get("/me",response_model=crud.User)
 def read_item(token: str = Depends(oauth2_scheme),db: Session=Depends(get_db)):
     user = crud.decryption_token(token,db)
